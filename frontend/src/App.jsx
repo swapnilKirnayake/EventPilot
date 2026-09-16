@@ -1,32 +1,53 @@
-import { useEffect, useState } from "react";
-import { getHealth } from "./services/api";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import ProtectedRoute from "./components/common/ProtectedRoute";
+import Login from "./pages/Login/Login";
+import Register from "./pages/Register/Register";
+import { useAuth } from "./hooks/useAuth";
 
-function App() {
-  const [health, setHealth] = useState(null);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    getHealth()
-      .then(setHealth)
-      .catch((err) => {
-        setError(err.message);
-      });
-  }, []);
-
+function Home() {
   return (
     <main>
       <h1>EventPilot</h1>
-
-      {health && (
-        <p>
-          Backend: {health.status} | Application: {health.application}
-        </p>
-      )}
-
-      {!health && !error && <p>Checking backend...</p>}
-
-      {error && <p>Backend unavailable: {error}</p>}
+      <p>Event discovery platform.</p>
     </main>
+  );
+}
+
+function Dashboard() {
+  const { user, logout } = useAuth();
+
+  return (
+    <main>
+      <h1>Dashboard</h1>
+
+      <p>Welcome, {user.name}.</p>
+      <p>Email: {user.email}</p>
+      <p>Role: {user.role}</p>
+
+      <button type="button" onClick={logout}>
+        Logout
+      </button>
+    </main>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+
+        <Route path="/login" element={<Login />} />
+
+        <Route path="/register" element={<Register />} />
+
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
